@@ -1,4 +1,4 @@
-"""Prezzi PUN del mese"""
+"""Prezzi PUN e CSUD del mese"""
 from datetime import date, timedelta, datetime
 import holidays
 from statistics import mean
@@ -133,6 +133,7 @@ class PUNDataUpdateCoordinator(DataUpdateCoordinator):
         self.web_retries = 0
         self.web_last_run = datetime.min.replace(tzinfo=dt_util.UTC)
         self.pun = [0.0, 0.0, 0.0, 0.0]
+        self.csud = [0.0, 0.0, 0.0, 0.0]
         self.orari = [0, 0, 0, 0]
         self.fascia_corrente = None
         _LOGGER.debug('Coordinator inizializzato (con \'usa dati reali\' = %s).', self.actual_data_only)
@@ -262,28 +263,21 @@ class PUNDataUpdateCoordinator(DataUpdateCoordinator):
         self.orari[PUN_FASCIA_F3] = len(f3)
         if self.orari[PUN_FASCIA_MONO] > 0:
             self.pun[PUN_FASCIA_MONO] = mean(mono)
+            self.csud[PUN_FASCIA_MONO] = mean(mono_csud)
         if self.orari[PUN_FASCIA_F1] > 0:
             self.pun[PUN_FASCIA_F1] = mean(f1)
+            self.csud[PUN_FASCIA_F1] = mean(f1_csud)
         if self.orari[PUN_FASCIA_F2] > 0:
             self.pun[PUN_FASCIA_F2] = mean(f2)
+            self.csud[PUN_FASCIA_F2] = mean(f2_csud)
         if self.orari[PUN_FASCIA_F3] > 0:
             self.pun[PUN_FASCIA_F3] = mean(f3)
-        self.orari[CSUD_FASCIA_MONO] = len(mono_csud)
-        self.orari[CSUD_FASCIA_F1] = len(f1_csud)
-        self.orari[CSUD_FASCIA_F2] = len(f2_csud)
-        self.orari[CSUD_FASCIA_F3] = len(f3_csud)
-        if self.orari[CSUD_FASCIA_MONO] > 0:
-            self.pun[CSUD_FASCIA_MONO] = mean(mono_csud)
-        if self.orari[CSUD_FASCIA_F1] > 0:
-            self.pun[CSUD_FASCIA_F1] = mean(f1_csud)
-        if self.orari[CSUD_FASCIA_F2] > 0:
-            self.pun[CSUD_FASCIA_F2] = mean(f2_csud)
-        if self.orari[CSUD_FASCIA_F3] > 0:
-            self.pun[CSUD_FASCIA_F3] = mean(f3_csud)
+            self.csud[PUN_FASCIA_F3] = mean(f3_csud)
        
         # Logga i dati
         _LOGGER.debug('Numero di dati: ' + ', '.join(str(i) for i in self.orari))
         _LOGGER.debug('Valori PUN: ' + ', '.join(str(f) for f in self.pun))
+        _LOGGER.debug('Valori CSUD: ' + ', '.join(str(f) for f in self.csud))
         return
 
     async def update_fascia(self, now=None):
