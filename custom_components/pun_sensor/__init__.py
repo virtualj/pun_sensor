@@ -201,6 +201,11 @@ class PUNDataUpdateCoordinator(DataUpdateCoordinator):
         f1 = []
         f2 = []
         f3 = []
+        mono_csud = []
+        f1_csud = []
+        f2_csud = []
+        f3_csud = []
+
 
         # Esamina ogni file XML nello ZIP (ordinandoli prima)
         for fn in sorted(archive.namelist()):
@@ -228,18 +233,27 @@ class PUNDataUpdateCoordinator(DataUpdateCoordinator):
                 prezzo_string = prezzi.find('PUN').text
                 prezzo_string = prezzo_string.replace('.','').replace(',','.')
                 prezzo = float(prezzo_string) / 1000
+                
+                # Estrae il prezzo CSUD dall'XML in un float
+                prezzo_string_csud = prezzi.find('CSUD').text
+                prezzo_string_csud = prezzo_string_csud.replace('.','').replace(',','.')
+                prezzo_csud = float(prezzo_string_csud) / 1000
 
                 # Estrae la fascia oraria
                 fascia = get_fascia_for_xml(dat_date, festivo, ora)
 
                 # Calcola le statistiche
                 mono.append(prezzo)
+                mono_csud.append(prezzo_csud)
                 if fascia == 3:
                     f3.append(prezzo)
+                    f3_csud.append(prezzo_csud)
                 elif fascia == 2:
                     f2.append(prezzo)
+                    f2_csud.append(prezzo_csud)
                 elif fascia == 1:
                     f1.append(prezzo)
+                    f2_csud.append(prezzo_csud)
 
         # Salva i risultati nel coordinator
         self.orari[PUN_FASCIA_MONO] = len(mono)
@@ -254,6 +268,18 @@ class PUNDataUpdateCoordinator(DataUpdateCoordinator):
             self.pun[PUN_FASCIA_F2] = mean(f2)
         if self.orari[PUN_FASCIA_F3] > 0:
             self.pun[PUN_FASCIA_F3] = mean(f3)
+        self.orari[CSUD_FASCIA_MONO] = len(mono_csud)
+        self.orari[CSUD_FASCIA_F1] = len(f1_csud)
+        self.orari[CSUD_FASCIA_F2] = len(f2_csud)
+        self.orari[CSUD_FASCIA_F3] = len(f3_csud)
+        if self.orari[CSUD_FASCIA_MONO] > 0:
+            self.pun[CSUD_FASCIA_MONO] = mean(mono_csud)
+        if self.orari[CSUD_FASCIA_F1] > 0:
+            self.pun[CSUD_FASCIA_F1] = mean(f1_csud)
+        if self.orari[CSUD_FASCIA_F2] > 0:
+            self.pun[CSUD_FASCIA_F2] = mean(f2_csud)
+        if self.orari[CSUD_FASCIA_F3] > 0:
+            self.pun[CSUD_FASCIA_F3] = mean(f3_csud)
        
         # Logga i dati
         _LOGGER.debug('Numero di dati: ' + ', '.join(str(i) for i in self.orari))
